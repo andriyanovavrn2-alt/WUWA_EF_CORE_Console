@@ -16,10 +16,10 @@ public static class Program
     {
         while (true)
         {
-            Console.WriteLine("Enter:\nl - list of characters\na - add the character\nr - filter by rarity\ne - filter by element\nc - count of character");
+            Console.WriteLine("Enter:\nla - list of all characters\nls - list of character (short version)\na - add the character\nr - filter by rarity\ne - filter by element\nc - count of character");
             string chose = Console.ReadLine();
             if (chose == "la") ListAllInfo();
-            if (chose == "ls") ListShornInfo();
+            if (chose == "ls") ListShortInfo();
             // if (chose == 'a') AddCharacter();
             if (chose == "r") FilterRarity();
             if (chose == "e") FilterElement();
@@ -29,6 +29,7 @@ public static class Program
 
     public static void ListAllInfo()
     {
+        Console.Clear();
         using (var db = new AppDbContext())
         {
             foreach (var character in
@@ -38,36 +39,50 @@ public static class Program
                 .Include(character => character.Rarity)
                 .Include(character => character.Role))
             {
-                Console.WriteLine($"Name: {character.Name}\nWeapon: {character.Weapon.WeaponName}\nElement: {character.Element.ElementName}\nRarity: {character.Rarity.RarityName}\nRole: {character.Role.RoleName}\n\n");
+                ElementColorConsole(character.Element.ElementName);
+                Console.WriteLine($"Name: {character.Name}\nWeapon: {character.Weapon.WeaponName}\nElement: {character.Element.ElementName}\nRarity: {character.Rarity.RarityName}\nRole: {character.Role.RoleName}\n------------\n");
+                Console.ResetColor();
+
             }
         }
+        Console.ReadLine();
+        Console.Clear();
     }
 
-    public static void ListShornInfo()
+    public static void ListShortInfo() // использование record
     {
+        Console.Clear();
         using (var db = new AppDbContext())
         {
             foreach (var character in db.Character.AsNoTracking()
-                .Select(character => new CharacterDto(character.Name, character.Rarity.RarityName)).ToList())
+                .Select(character_dto => new CharacterDto(character_dto.Name, character_dto.Rarity.RarityName, character_dto.Element.ElementName)))
             {
+                ElementColorConsole(character.ElementName);
                 Console.WriteLine($"{character.Name} {character.RarityName}");
+                Console.ResetColor();
 
             }
         }
+        Console.ReadLine();
+        Console.Clear();
     }
     public static void FilterRarity()
     {
+        Console.Clear();
         Console.WriteLine("Chose the rarity: 4* or 5*?");
         var choice_rarity = Console.ReadLine();
+        Console.Clear();
         using (var db = new AppDbContext())
         {
             var filtered_characters = db.Character.Where(character => character.Rarity.RarityName == choice_rarity).ToList();
-            filtered_characters.ForEach(character => Console.WriteLine($"{character.Name}\n\n"));
+            filtered_characters.ForEach(character => Console.WriteLine(character.Name));
         }
+        Console.ReadLine();
+        Console.Clear();
     }
     public static void FilterElement()  // отложенное выполнение
     {
-
+        Console.Clear();
         using (var db = new AppDbContext())
         {
             var query = db.Character.AsQueryable();
@@ -76,8 +91,10 @@ public static class Program
             {
                 Console.WriteLine(element.ElementName);
             }
-            Console.WriteLine("Chose the element.");
-            var choseElement = Console.ReadLine();
+            Console.WriteLine("Chose the element.\n");
+            string choseElement = Console.ReadLine();
+            Console.Clear();
+            ElementColorConsole(choseElement);
             query = query
                 .Where(character => character.Element.ElementName == choseElement); // построение запроса
             var result = query.ToList();  // выполнение
@@ -86,8 +103,10 @@ public static class Program
                 Console.WriteLine(character.Name);
             }
             Console.WriteLine("\n");
-
+            Console.ResetColor();
         }
+        Console.ReadLine();
+        Console.Clear();
     }
     //public static void AddCharacter()
     //{
@@ -119,8 +138,26 @@ public static class Program
     //}
     public static void CountCharacter()
     {
+        Console.Clear();
         using (var db = new AppDbContext())
-            Console.WriteLine($"{db.Character.Count()} characters\n\n");
+            Console.WriteLine($"{db.Character.Count()} characters");
+        Console.ReadLine();
+        Console.Clear();
+    }
+    public static ConsoleColor ElementColorConsole(string element_name)
+    {
+        ConsoleColor color = element_name switch
+        {
+            "Aero" => ConsoleColor.Cyan,
+            "Fusion" => ConsoleColor.Red,
+            "Electro" => ConsoleColor.DarkMagenta,
+            "Glacio" => ConsoleColor.Blue,
+            "Havoc" => ConsoleColor.Magenta,
+            "Spectro" => ConsoleColor.Yellow,
+            _ => ConsoleColor.Gray
+        };
+        Console.ForegroundColor = color;
+        return color;
     }
 }
 

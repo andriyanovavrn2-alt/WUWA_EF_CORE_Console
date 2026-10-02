@@ -5,11 +5,14 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using WUWA_CHARACTER_OOP.Models;
 using WUWA_EF_CORE_Console;
 using WUWA_WINFORMS_POSTGRE;
 using WUWA_WINFORMS_POSTGRE.Models;
+using System.Linq;
+
 public static class Program
 {
     public static void Main()
@@ -18,16 +21,19 @@ public static class Program
         {
             Console.WriteLine("Enter:\nla - list of all characters\nls - list of character (short version)\na - add the character\nr - filter by rarity\ne - filter by element\nc - count of character");
             string chose = Console.ReadLine();
-            if (chose == "la") ListAllInfo();
+            if (chose == "la") ListAllInfoInclude();
             if (chose == "ls") ListShortInfo();
             // if (chose == 'a') AddCharacter();
             if (chose == "r") FilterRarity();
             if (chose == "e") FilterElement();
             if (chose == "c") CountCharacter();
+            if (chose == "Join") ListAllInfoJoin();
+            if (chose == "Selectmany") ListAllSkill();
+
         }
     }
 
-    public static void ListAllInfo()
+    public static void ListAllInfoInclude()  // использование .Include
     {
         Console.Clear();
         using (var db = new AppDbContext())
@@ -49,6 +55,38 @@ public static class Program
         Console.Clear();
     }
 
+    public static void ListAllSkill() //  использование Selectmany
+    {
+        Console.Clear();
+        using (var db = new AppDbContext())
+        {
+            var linq = db.Character.AsNoTracking()
+                .SelectMany(
+                    ch => ch.Skill, (ch, s) => new { ch.Name, s.SkillName, s.Talant.TalantName}).ToList();
+            linq.ForEach(item => Console.WriteLine($"{item.Name}: {item.TalantName} - {item.SkillName}"));
+        }
+
+    }
+
+    public static void ListAllInfoJoin()  // использование Join
+    {
+        Console.Clear();
+        using (var db = new AppDbContext())
+        {
+            var result = db.Character.Join(
+                    db.Weapon,
+                    character => character.WeaponId,
+                    weapon => weapon.WeaponId,
+                    (character, weapon) => new { character.Name, weapon.WeaponName }).ToList();
+            foreach (var item in result)
+            {
+                Console.WriteLine($"{item.Name} - {item.WeaponName}");
+            }
+        }
+        Console.ReadLine();
+        Console.Clear();
+    }
+
     public static void ListShortInfo() // использование record
     {
         Console.Clear();
@@ -60,7 +98,6 @@ public static class Program
                 ElementColorConsole(character.ElementName);
                 Console.WriteLine($"{character.Name} {character.RarityName}");
                 Console.ResetColor();
-
             }
         }
         Console.ReadLine();

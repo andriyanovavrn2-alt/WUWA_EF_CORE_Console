@@ -22,5 +22,7 @@ namespace WUWA_WINFORMS_POSTGRE
         public DbSet<Element> Elements { get; set; }
         public DbSet<Rarity> Rarity { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<Skill> Skills { get; set; }
+        public DbSet<Talant> Talants { get; set; }
     }
 }

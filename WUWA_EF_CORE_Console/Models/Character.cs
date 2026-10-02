@@ -4,6 +4,7 @@ using System.Text;
 using WUWA_WINFORMS_POSTGRE;
 using WUWA_WINFORMS_POSTGRE.Models;
 using Microsoft.EntityFrameworkCore;
+using WUWA_CHARACTER_OOP.Models;
 
 namespace WUWA_CHARACTER_OOP.Models
 {
@@ -20,6 +21,7 @@ namespace WUWA_CHARACTER_OOP.Models
         public int RoleId { get; set; }
         public Role Role { get; set; }
         public string Photo { get; set; }
+        public ICollection<Skill> Skill { get; set; }
 
     }
 }
